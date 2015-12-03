@@ -1,0 +1,30 @@
+Tests via CURL for Create, Read, Update, and Delete
+
+# >>>>>>>>>> test CREATE success by adding 3 items
+curl -i -X PUT -d "name=apricot&quantity=2" http://localhost:50000/groceries
+curl -i -X PUT -d "name=banana&quantity=3" http://localhost:50000/groceries
+curl -i -X PUT -d "name=cantaloupe&quantity=4" http://localhost:50000/groceries
+
+# >>>>>>>>>> test CREATE missing what to put
+curl -i -X PUT  http://localhost:50000/groceries
+
+# >>>>>>>>>> test READ ALL ITEMS success
+curl -i -X GET  http://localhost:50000/groceries
+
+# >>>>>>>>>> test READ ONE ITEM success
+Tested in browser
+
+# >>>>>>>>>> test UPDATE success - modify
+curl -i -X POST -d "find={name:banana}&update={$set:{quantity:8}}" http://localhost:50000/groceries
+
+# >>>>>>>>>> test UPDATE success - insert
+curl -i -X POST -d "find={name:plum}&update={$set:{quantity:6}}" http://localhost:50000/groceries
+
+# >>>>>>>>>> test UPDATE missing filter, so apply to all
+curl -i -X POST -d "update={$set:{edible:true}}" http://localhost:50000/groceries
+
+# >>>>>>>>>> test UPDATE missing update operation
+curl -i -X POST -d "find={name:pear}" http://localhost:50000/groceries
+
+# >>>>>>>>>> test DELETE success
+curl -i -X DELETE -d "name=apricot"  http://localhost:50000/groceries

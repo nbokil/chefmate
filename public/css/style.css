@@ -1,0 +1,12 @@
+@font-face {
+    font-family: "xkcd";
+    src: url('/fonts/Humor-Sans-1.0.ttf');
+}
+
+body {
+	padding: 20px;
+  font-family: "xkcd", sans-serif;
+  font-size: 20px;
+  color: #f83;
+  margin-top: 25px;
+}
