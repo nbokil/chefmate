@@ -2,6 +2,7 @@ var morgan = require('morgan');
 var fs = require('fs');
 var path = require('path');
 var bodyParser = require('body-parser');
+var session = require('client-sessions');
 
 var express = require('express');
 var app = express();
@@ -13,7 +14,15 @@ app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
 // Define how to log events
-app.use(morgan('tiny'));	
+app.use(morgan('tiny'));
+
+//Handle session
+app.use(session({
+  cookieName: 'session',
+  secret: 'ASDfd223lasdF2k9S2;l!2asd;af)O',
+  duration: 30 * 60 * 1000,
+  activeDuration: 5 * 60 * 1000,
+}));
 
 // parse application/x-www-form-urlencoded, with extended qs library
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -38,15 +47,6 @@ app.use(function(req, res) {
 });
 
 var httpServer = require('http').createServer(app);
-
-/*
- * Boilerplate for setting up socket.io alongside Express.
- * If socket.io is not needed, comment out the 2 socket.io lines
- */
-//var sio =require('socket.io')(httpServer);
-
-// The server socket.io code is in the socketio directory.
-//require('./socketio/serverSocket.js').init(sio);
 
 /*
  * OpenShift will provide environment variables indicating the IP 

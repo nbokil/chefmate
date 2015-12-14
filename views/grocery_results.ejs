@@ -1,0 +1,57 @@
+<div class="table-responsive">
+	<table class="table">
+		<tr>
+			<th>Item Name</th>
+			<th>Quantity</th>
+			<th></th>
+			<th></th>
+		</tr>
+		<% if (obj.length) { %>
+			<% for(var i = 0; i < obj.length; i++) { %>
+			    <% var item = obj[i]%>
+			    <tr>
+			    	<td>
+			    		<%= item.name %>
+			    	</td>
+			    	<td>
+			    		<%= item.quantity %>
+			    	</td>
+			    	<td>
+			    		<!-- Button trigger Edit modal -->
+	                  	<button class="btn btn-primary" data-toggle="modal" data-target="#editModal">
+	                      Edit
+	                  	</button>
+			    	</td>
+			    	<td>
+			    		<input type="button" class="btn btn-primary" value="Delete" >
+			    	</td>
+			    </tr>
+			<% }; %>
+		<% } %>
+	</table>
+</div>
+
+<!-- script to delete item, does not work if placed in application.js -->
+<script>
+	$('input[type="button"]').on('click', deleteItem);
+
+	function deleteItem() {
+		//go through 'td' elements to find name of item in the row
+		var item_name = $(this).closest('tr td').prev('td').prev('td').prev('td').text();
+		//remove any line breaks from item_name
+		item_name = item_name.replace(/\s{2,}/g, '');
+		item_name = item_name.replace(/\t/g, '');
+		item_name = item_name.replace(/(\r\n|\n|\r)/g,"");
+		$.ajax({
+			url: './groceries',
+			type: 'DELETE',
+			data: { name: item_name },
+			success:function(result){
+				console.log("Successfully deleted item");
+				window.location.reload(true);
+			}
+		});
+		event.preventDefault();
+	}
+</script>
+

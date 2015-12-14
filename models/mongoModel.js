@@ -3,6 +3,7 @@
  * To install:  npm install mongodb --save
  */
 var mongoClient = require('mongodb').MongoClient;
+var bcrypt = require('bcryptjs'); //used for encrypting password
 
 /*
  * This connection_string is for mongodb running locally.
@@ -31,14 +32,6 @@ mongoClient.connect('mongodb://'+connection_string, function(err, db) {
   mongoDB = db; // Make reference to db globally available.
 });
 
-/*
- * In the methods below, notice the use of a callback argument,
- * how that callback function is called, and the argument it is given.
- * Why do we need to be passed a callback function? Why can't the create, 
- * retrieve, and update functinons just return the data directly?
- * (This is what we discussed in class.)
- */
-
 /********** CRUD Create -> Mongo insert ***************************************
  * @param {string} collection - The collection within the database
  * @param {object} data - The object to insert as a MongoDB document
@@ -48,20 +41,22 @@ mongoClient.connect('mongodb://'+connection_string, function(err, db) {
  * http://mongodb.github.io/node-mongodb-native/2.0/api/Collection.html#insertOne
  */
 exports.create = function(collection, data, callback) {
-  console.log("4. Start insert function in mongoModel");
+  //If creating new user, need to encrypt password before storing
+  if (collection == "users") {
+    var salt = bcrypt.genSaltSync(10);
+    var hash = bcrypt.hashSync(data.password, salt);
+    data.password = hash;
+  }
   // Do an asynchronous insert into the given collection
   mongoDB.collection(collection).insertOne(
     data,                     // the object to be inserted
     function(err, status) {   // callback upon completion
       if (err) doError(err);
-      console.log("5. Done with mongo insert operation in mongoModel");
       // use the callback function supplied by the controller to pass
       // back true if successful else false
       var success = (status.result.n == 1 ? true : false);
       callback(success);
-      console.log("6. Done with insert operation callback in mongoModel");
     });
-  console.log("7. Done with insert function in mongoModel");
 }
 
 /********** CRUD Retrieve -> Mongo find ***************************************
@@ -75,17 +70,43 @@ exports.create = function(collection, data, callback) {
  * http://mongodb.github.io/node-mongodb-native/2.0/api/Cursor.html#toArray
  */
 exports.retrieve = function(collection, query, callback) {
-  /*
-   * The find sets up the cursor which you can iterate over and each
-   * iteration does the actual retrieve. toArray asynchronously retrieves the
-   * whole result set and returns an array.
-   */
-  mongoDB.collection(collection).find(query).toArray(function(err, docs) {
-    if (err) doError(err);
-    // docs are MongoDB documents, returned as an array of JavaScript objects
-    // Use the callback provided by the controller to send back the docs.
-    callback(docs);
-  });
+  //If user is logging in, need to decrypt stored password to check with password user entered
+  if (collection == "users") {
+    var user = query.username;
+    var search = {};
+    search.username = user;
+    //First, search for users with entered username
+    mongoDB.collection(collection).find(search).toArray(function(err, docs) {
+      //If no users found, callback empty []
+      if (docs.length == 0) {
+        callback(docs);
+      }
+      //If users found (should only be 1 user since username is unique!), check if password matches hash password
+      else {
+        var password = docs[0].password;
+        var match = bcrypt.compareSync(query.password, password);
+        if (match == true) {
+          callback(docs);
+        }
+        else {
+          callback([]);
+        }
+      }
+    });
+  }
+  else{
+    /*
+     * The find sets up the cursor which you can iterate over and each
+     * iteration does the actual retrieve. toArray asynchronously retrieves the
+     * whole result set and returns an array.
+     */
+    mongoDB.collection(collection).find(query).toArray(function(err, docs) {
+      if (err) doError(err);
+      // docs are MongoDB documents, returned as an array of JavaScript objects
+      // Use the callback provided by the controller to send back the docs.
+      callback(docs);
+    });
+  }
 }
 
 /********** CRUD Update -> Mongo updateMany ***********************************
@@ -100,7 +121,7 @@ exports.retrieve = function(collection, query, callback) {
 exports.update = function(collection, filter, update, callback) {
   mongoDB
     .collection(collection)     // The collection to update
-    .updateMany(                // Use updateOne to only update 1 document
+    .updateOne(                // Use updateOne to only update 1 document
       filter,                   // Filter selects which documents to update
       update,                   // The update operation
       {upsert:true},            // If document not found, insert one with this update

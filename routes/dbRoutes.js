@@ -1,15 +1,15 @@
 // include my model for this application
-var mongoModel = require("../models/mongoModel.js")
+var mongoModel = require("../models/mongoModel.js");
 
 // Define the routes for this controller
 exports.init = function(app) {
-  app.get('/', index); // The app welcome page
-  app.get('/blog', blog); // The app blog page
-  app.get('/contact', contact); // The app contact page
-  app.get('/about', about); // The app about page
-
-
+  app.get('/', homepage); // The homepage page
+  app.get('/home', homepage); // Can be accessed by another url
+  app.get('/logout', logout); // Log out user and end session
+  app.get('/about', about); // The about page
+  app.get('/leftovers', leftovers); // The leftovers page
   app.get('/grocery', groceries); //The grocery list page
+    
   // The collection parameter maps directly to the mongoDB collection
   app.put('/:collection', doCreate); // CRUD Create
   app.get('/:collection', doRetrieve); // CRUD Retrieve
@@ -17,46 +17,63 @@ exports.init = function(app) {
   app.delete('/:collection', doDelete); // CRUD Delete 
 }
 
-// No path:  display home page
-index = function(req, res) {
-  res.render('home', {title: 'ChefMate'})
+//------------------------------ROUTE CALLS FOR STATIC PAGES-------------------------------------------
+
+// Home page: if user is not logged in, have them log in or register
+// Else, render normal homepage
+homepage = function(req, res) {
+  if ( req.session.user == undefined) {
+    res.render('homepage', { username: false } );
+  }
+  else {
+    res.render('homepage', { username: req.session.user } );
+  }
 };
 
-// MOCK PATHS
-blog = function(req, res) {
-  res.render('blog', {title: 'ChefMate'})
-};
+// Logout user and end session, redirecting them to homepage to log in
+logout = function(req, res) {
+  req.session.reset();
+  res.redirect('/home');
+}
 
-contact = function(req, res) {
-  res.render('contact', {title: 'ChefMate'})
-};
-
+// About page
 about = function(req, res) {
-  res.render('about', {title: 'ChefMate'})
+  if ( req.session.user == undefined) {
+    res.render('homepage', { username: false } );
+  }
+  else {
+    res.render('homepage', { username: req.session.user } );
+  }
 };
 
-
-
+// Leftovers page that will make a request to API for food
+leftovers = function(req, res) {
+  if ( req.session.user == undefined) {
+    res.render('homepage', { username: false } );
+  }
+  else {
+    res.render('leftovers', { username: req.session.user } );
+  }
+};
 
 // Path to access a user's grocery list
 // A user will have one grocery list with which he/she can perform CRUD functionality
 groceries = function(req, res) {
-  res.render('grocery')
+  if ( req.session.user == undefined) {
+    res.render('homepage', { username: false } );
+  }
+  else {
+    res.render('grocery', { username: req.session.user } );
+  }
 };
+
+//------------------------------ROUTE CALLS FOR CRUD FUNCTIONATLITY-------------------------------------------
 
 /********** CRUD Create *******************************************************
  * Take the object defined in the request body and do the Create
  * operation in mongoModel.
  */ 
 doCreate = function(req, res){
-  /*
-   * A series of console.log messages are produced in order to demonstrate
-   * the order in which the code is executed.  Given that asynchronous 
-   * operations are involved, the order will *not* be sequential as implied
-   * by the preceding numbers.  These numbers are only shorthand to quickly
-   * identify the individual messages.
-   */
-  console.log("1. Starting doCreate in dbRoutes");
   /*
    * First check if req.body has something to create.
    * Object.keys(req.body).length is a quick way to count the number of
@@ -78,15 +95,17 @@ doCreate = function(req, res){
    *    is successful, a callback function is provided for the model to 
    *    call in the future whenever the create has completed.
    */
+  if (req.params.collection == "groceries") {
+    /* add current user in session as attribute to in document */
+    req.body.username = req.session.user;
+  }
   mongoModel.create ( req.params.collection, 
-	                    req.body,
-		                  function(result) {
-		                    // result equal to true means create was successful
-  		                  var success = (result ? "Create successful" : "Create unsuccessful");
-	  	                  res.render('message', {title: 'Mongo Demo', obj: success});
-     		                console.log("2. Done with callback in dbRoutes create");
-		                  });
-  console.log("3. Done with doCreate in dbRoutes");
+                      req.body,
+                      function(result) {
+                        // result equal to true means create was successful
+                        var success = (result ? "Create successful" : "Create unsuccessful");
+                        res.render('message', {title: 'Mongo Demo', obj: success});
+                      });
 }
 
 /********** CRUD Retrieve (or Read) *******************************************
@@ -105,18 +124,30 @@ doRetrieve = function(req, res){
    *    model once the retrieve has been successful.
    * modelData is an array of objects returned as a result of the Retrieve
    */
+  if (req.params.collection == "groceries") {
+    /* add current user in session as attribute to search for in document */
+    req.query.username = req.session.user;
+  }
   mongoModel.retrieve(
     req.params.collection, 
     req.query,
-		function(modelData) {
-		  if (modelData.length) {
-        res.render('results',{obj: modelData});
-      } else {
-        var message = "No documents with "+JSON.stringify(req.query)+ 
-                      " in collection "+req.params.collection+" found.";
-        res.render('message', {title: 'Mongo Demo', obj: message});
+    function(modelData) {
+      if (modelData.length) {
+        if (req.params.collection == "users") {
+          /* Create session with username when user logs in */
+          req.session.user = req.query.username;
+          res.render('user_results',{obj: modelData});
+        }
+        else if (req.params.collection == "groceries") {
+          res.render('grocery_results',{obj: modelData});
+        }
+      } 
+      else {
+        var message = "No search results found. Please try again!";
+        res.render('message', {obj: message});
       }
-		});
+  });
+  
 }
 
 /********** CRUD Update *******************************************************
@@ -128,8 +159,8 @@ doRetrieve = function(req, res){
  * you are using and the content of the documents you are storing to them.)
  */ 
 doUpdate = function(req, res){
-  // if there is no filter to select documents to update, select all documents
-  var filter = {"name": req.body.filter};
+  // filter on user and name of item, which cannot be updated
+  var filter = {"username": req.session.user, "name": req.body.filter};
   // if there no update operation defined, render an error page.
   if (!req.body.update) {
     res.render('message', {title: 'Mongo Demo', obj: "No update operation defined"});
@@ -167,6 +198,12 @@ doDelete = function(req, res){
    *    model once the delete has been successful.
    * modelData is an array of objects returned as a result of the Retrieve
    */
+  if (req.params.collection == "groceries") {
+    /* add current user in session as attribute to in document */
+    req.body.username = req.session.user;
+    console.log(req.body);
+  }
+
   mongoModel.delete ( req.params.collection, 
                       req.body,
                       function(result) {

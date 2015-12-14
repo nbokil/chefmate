@@ -1,44 +1,80 @@
-<html>
-  <head>
-    <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
-    <script src="js/application.js"></script>
+<!DOCTYPE html>
+<html lang="en">
 
-    <title>Grocery List</title>
-  </head>
+<head>
+    <% include ./partials/head %>
+</head>
 
-  <body>
-  	<h1>My Grocery List</h1>
+<body>
+    <% include ./partials/nav %>
+    <div class="container">
+        <div class="row">
+            <div class="box">
+                <div class="col-lg-12">
+                  <hr>
+                  <h2 class="intro-text text-center"><strong>My Grocery LIst</strong></h2>
+                  <hr>
 
-    <div id="allItems">
-      
+                  <div id="custom-search-input">
+                      <div class="input-group col-md-12">
+                          <input type="text" id="search-text" class="  search-query form-control" placeholder="Search" />
+                          <span class="input-group-btn">
+                              <button id="find" class="btn btn-danger" type="button">
+                                  <span class=" glyphicon glyphicon-search"></span>
+                              </button>
+                          </span>
+                      </div>
+                  </div>
+                  <br>
+                  <div id="founditem"></div>
+                  <br>
+
+                  <div id="allItems"></div>
+                	
+                  <!-- Edit Modal -->
+                  <div class="modal fade" id="editModal" tabindex="-1" role="dialog" 
+                     aria-labelledby="myModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <!-- Modal Header -->
+                              <div class="modal-header">
+                                  <button type="button" class="close" 
+                                     data-dismiss="modal">
+                                         <span aria-hidden="true">&times;</span>
+                                         <span class="sr-only">Close</span>
+                                  </button>
+                                  <h4 class="modal-title" id="myModalLabel">
+                                      Edit Item
+                                  </h4>
+                              </div>
+                            <!-- Modal Body -->
+                            <div class="modal-body">
+                              <form id="update">
+                                <input type="text" id="name" placeholder="Item" required></input><br>
+                                <input type="text" id="quantity" placeholder="Quantity" required></input><br><br>
+                                <input type="submit" value="Edit Item" class="btn btn-primary">
+                              </form>               
+                            </div>
+                        </div>
+                    </div>
+                  </div> <!-- edit modal -->
+                </div>
+                <div class="col-lg-6">
+                  <form id="new">
+                    <input type="text" id="name" placeholder="New Item" required></input>
+                    <input type="text" id="quantity" placeholder="Quantity" required></input>
+                    <input type="submit" value="Add Item" class="btn btn-primary">
+                  </form>
+                </div>
+            </div>
+        </div>
+
     </div>
+    <!-- /.container -->
 
-  	<h2>Add Item</h2>
-  	<form id="new">
-  		Name<input type="text" id="name"></input><br>
-  		Quantity<input type="text" id="quantity"></input><br>
-  		<input type="submit" value="Add Item">
-  	</form>
-  	
-  	<h2>Find Item</h2>
-  	<form id="find">
-  		Name<input type="text" id="name"></input><br>
-  		<input type="submit" value="Find Item">
-  	</form>
-  	<ul><div id="founditem"></ul></div>
-
-	  <h2>Update Item</h2>
-    	<form id="update">
-    		Name<input type="text" id="name"></input><br>
-    		Quantity<input type="text" id="quantity"></input><br>
-    		<input type="submit" value="Edit Item">
-    	</form>  
-
-  	<h2>Delete Item</h2>
-  	<form id="delete">
-  		Name<input type="text" id="name"></input><br><br><br>
-  		<input type="submit" value="Delete Item">
-  	</form>
+    <footer>
+        <% include ./partials/footer %>
+    </footer>
 
   </body>
 </html>
