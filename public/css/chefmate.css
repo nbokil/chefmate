@@ -231,8 +231,11 @@ footer p {
     z-index: 3;   
 }
 
-#recipePic {
-    border-left: solid #000000;
+@media screen and (min-width:1200px) {
+    #recipePic {
+        border-left: solid #000000;
+        border-bottom: dotted #e5d2c3;
+    }
 }
 
 #welcome p {

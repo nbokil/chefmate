@@ -210,8 +210,8 @@ $(document).ready(function() {
 	function showIngredients(data) {
 		var result = "";
 		//create left col with Recipe name and picture
-		result += "<div class='col-md-6'><h3><a href='"+data.source.sourceRecipeUrl+"' target='_blank'>"+data.name+"</a></h3>";
-		result += "<img src='"+data.images[0].hostedLargeUrl+"'></div>";
+		result += "<div class='row'><div class='col-md-6'><h3><a href='"+data.source.sourceRecipeUrl+"' target='_blank'>"+data.name+"</a></h3>";
+		result += "<img class='img-responsive' src='"+data.images[0].hostedLargeUrl+"'></div>";
 		//create right col with Recipe information and ingredients
 		result += "<div class='col-md-6' id='recipePic'><h4><span class='glyphicon glyphicon-user'></span> "+data.numberOfServings+" servings</h4><h4><span class='glyphicon glyphicon-time'></span> "+data.totalTime+"</h4><h4><span class='glyphicon glyphicon-star-empty'></span> "+data.rating+" stars</h4>";
 		result += "<h4>Ingredients:</h4><ul>"
