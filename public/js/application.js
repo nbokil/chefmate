@@ -151,8 +151,8 @@ $(document).ready(function() {
 			url: 'http://api.yummly.com/v1/api/recipes?', 
             type: 'GET',
             data: {
-            	"_app_id": "bb50ec71",
-            	"_app_key": "dd855000279fc5780e8a0e9ae507d0e7",
+            	"_app_id": "YOUR_ID",
+            	"_app_key": "YOUR_APP_KEY",
             	"allowedIngredient[]": [ingredient_1, ingredient_2, ingredient_3]
             }, 
             success: function(result) {
@@ -188,8 +188,8 @@ $(document).ready(function() {
 				url: 'http://api.yummly.com/v1/api/recipe/'+food.id+'?', 
 	            type: 'GET',
 	            data: {
-	            	"_app_id": "bb50ec71",
-	            	"_app_key": "dd855000279fc5780e8a0e9ae507d0e7"
+	            	"_app_id": "YOUR_ID",
+	            	"_app_key": "YOUR_APP_KEY"
 	            }, 
 	            success: function(result) {
 	            	console.log('successfully called ajax for ingredient search!');
